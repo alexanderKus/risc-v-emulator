@@ -151,8 +151,8 @@ class Ram {
 private:
   uint32_t _data[1024 * 1024 * 4];
 public:
-  // OR example: 011001111000101000110001100000
-  Ram() { this->_data[0] = 0b000000001100011001011100110011; }
+  // OR instruction
+  Ram() { this->_data[0] = 0b000000001100011110011100110011; }
 
   uint32_t read(uint32_t addr) const {
     return _data[addr];
