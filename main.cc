@@ -5,6 +5,21 @@
 #include <stdexcept>
 #include <format>
 
+void inline log_error(const std::string err, const uint32_t inst) {
+  std::cerr << "[ERROR] " << err << " 0x" << std::hex << inst << std::endl;
+}
+
+void inline log_debug_hex(const std::string name, const uint32_t x) {
+#ifdef DEBUG
+    std::cout << "[DEBUG] " << name << ": 0x" << std::hex << x << std::endl;
+#endif
+}
+
+void inline log_info(const std::string data) {
+#ifdef INFO
+  std::cout << "[INFO] " << data << std::endl;
+#endif
+}
 
 class Registers {
 public:
@@ -59,74 +74,75 @@ enum {
 };
 
 enum {
-  FUNC3_JALR = 0b000,
+  FUNCT3_JALR = 0b000,
 
   // BRANCH
-  FUNC3_BEQ  = 0b000,
-  FUNC3_BNE  = 0b001,
-  FUNC3_BLT  = 0b100,
-  FUNC3_BGE  = 0b101,
-  FUNC3_BLTU = 0b110,
-  FUNC3_BGEU = 0b111,
+  FUNCT3_BEQ  = 0b000,
+  FUNCT3_BNE  = 0b001,
+  FUNCT3_BLT  = 0b100,
+  FUNCT3_BGE  = 0b101,
+  FUNCT3_BLTU = 0b110,
+  FUNCT3_BGEU = 0b111,
 
   //LOAD
-  FUNC3_LOAD_BYTE   = 0b000,
-  FUNC3_LOAD_HALF   = 0b000,
-  FUNC3_LOAD_WORD   = 0b000,
-  FUNC3_LOAD_BYTE_U = 0b000,
-  FUNC3_LOAD_HAFL_U = 0b000,
+  FUNCT3_LOAD_BYTE   = 0b000,
+  FUNCT3_LOAD_HALF   = 0b000,
+  FUNCT3_LOAD_WORD   = 0b000,
+  FUNCT3_LOAD_BYTE_U = 0b000,
+  FUNCT3_LOAD_HAFL_U = 0b000,
 
   // STORE
-  FUNC3_STORE_BYTE = 0b000,
-  FUNC3_STORE_HALF = 0b001,
-  FUNC3_STORE_WORD = 0b010,
+  FUNCT3_STORE_BYTE = 0b000,
+  FUNCT3_STORE_HALF = 0b001,
+  FUNCT3_STORE_WORD = 0b010,
 
   // INT_COMP_I
-  FUNC3_ADDI  = 0b000,
-  FUNC3_SLTI  = 0b010,
-  FUNC3_SLTIU = 0b011,
-  FUNC3_XORI  = 0b100,
-  FUNC3_ORI   = 0b110,
-  FUNC3_ANDI  = 0b111,
-  FUNC3_SLLI  = 0b001,
-  FUNC3_SRLI  = 0b101,
-  FUNC3_SRAI  = 0b101,
+  FUNCT3_ADDI  = 0b000,
+  FUNCT3_SLTI  = 0b010,
+  FUNCT3_SLTIU = 0b011,
+  FUNCT3_XORI  = 0b100,
+  FUNCT3_ORI   = 0b110,
+  FUNCT3_ANDI  = 0b111,
+  FUNCT3_SLLI  = 0b001,
+  // NOTE: they are both equl to 5
+  //FUNCT3_SRLI  = 0b101,
+  FUNCT3_SRAI  = 0b101,
 
   // INT_COMP
-  FUNC3_ADD  = 0b000,
-  FUNC3_SUB  = 0b000,
-  FUNC3_SLL  = 0b001,
-  FUNC3_SLT  = 0b010,
-  FUNC3_SLTU = 0b011,
-  FUNC3_XOR  = 0b100,
-  FUNC3_SRL  = 0b101,
-  FUNC3_SRA  = 0b101,
-  FUNC3_OR   = 0b110,
-  FUNC3_AND  = 0b111,
+  FUNCT3_ADD  = 0b000,
+  FUNCT3_SUB  = 0b000,
+  FUNCT3_SLL  = 0b001,
+  FUNCT3_SLT  = 0b010,
+  FUNCT3_SLTU = 0b011,
+  FUNCT3_XOR  = 0b100,
+  FUNCT3_SRL  = 0b101,
+  FUNCT3_SRA  = 0b101,
+  FUNCT3_OR   = 0b110,
+  FUNCT3_AND  = 0b111,
 
   // FENCE
-  FUNC3_FENCE  = 0b000,
-  FUNC3_FENCEI = 0b001,
+  FUNCT3_FENCE  = 0b000,
+  FUNCT3_FENCEI = 0b001,
 
   // R
-  FUNC3_SCALL      = 0b000,
-  FUNC3_SBREAK     = 0b000,
-  FUNC3_SRDCYCLE   = 0b000,
-  FUNC3_SRDCYCLEH  = 0b000,
-  FUNC3_RDTIME     = 0b000,
-  FUNC3_RDTIMEH    = 0b000,
-  FUNC3_RDINSTRET  = 0b000,
-  FUNC3_RDINSTRETH = 0b000,
+  FUNCT3_SCALL      = 0b000,
+  FUNCT3_SBREAK     = 0b000,
+  FUNCT3_SRDCYCLE   = 0b000,
+  FUNCT3_SRDCYCLEH  = 0b000,
+  FUNCT3_RDTIME     = 0b000,
+  FUNCT3_RDTIMEH    = 0b000,
+  FUNCT3_RDINSTRET  = 0b000,
+  FUNCT3_RDINSTRETH = 0b000,
 
   // R
-  FUNC7_SCALL      = 0b000000000000,
-  FUNC7_SBREAK     = 0b000000000001,
-  FUNC7_SRDCYCLE   = 0b110000000000,
-  FUNC7_SRDCYCLEH  = 0b110010000000,
-  FUNC7_RDTIME     = 0b110000000001,
-  FUNC7_RDTIMEH    = 0b110010000001,
-  FUNC7_RDINSTRET  = 0b110000000010,
-  FUNC7_RDINSTRETH = 0b110010000010,
+  IMM_SCALL      = 0b000000000000,
+  IMM_SBREAK     = 0b000000000001,
+  IMM_SRDCYCLE   = 0b110000000000,
+  IMM_SRDCYCLEH  = 0b110010000000,
+  IMM_RDTIME     = 0b110000000001,
+  IMM_RDTIMEH    = 0b110010000001,
+  IMM_RDINSTRET  = 0b110000000010,
+  IMM_RDINSTRETH = 0b110010000010,
 };
 
 
@@ -134,7 +150,7 @@ class Ram {
 private:
   uint32_t _data[1024 * 1024 * 4];
 public:
-  Ram() { }
+  Ram() { this->_data[0] = 0b00000000000000000000100010110011; }
 
   uint32_t read(uint32_t addr) const {
     return _data[addr];
@@ -153,24 +169,398 @@ public:
     this->_value = value;
   }
 
-  uint32_t getValue() const {
+  uint32_t get_value() const {
     return this->_value;
   }
 
-  uint32_t getOpcode() const {
-    return this->_value & 0xfffffF82;
+  uint32_t get_opcode() const {
+    return this->_value & 0b00000000000000000000000001111111;
+  }
+  
+  uint32_t get_rd() const {
+    return this->_value & 0b00000000000000000000111110000000;
+  }
+
+  uint32_t get_funct3() const {
+    return this->_value & 0b00000000000000000111000000000000;
+  }
+
+  uint32_t get_rs1() const {
+    return this->_value & 0b00000000000011111000000000000000;
+  }
+
+  uint32_t get_rs2() const {
+    return this->_value & 0b00000001111100000000000000000000;
+  }
+
+  uint32_t get_funct7() const {
+    return this->_value & 0b11111110000000000000000000000000;
+  }
+
+  uint32_t get_imm31_12() const {
+    return this->_value & 0b11111111111111111111000000000000;
+  }
+
+  uint32_t get_imm11_0() const {
+    return this->_value & 0b11111111111100000000000000000000;
+  }
+  
+  uint32_t get_pred() const {
+    return this->_value & 0b00001111000000000000000000000000;
+  }
+
+  uint32_t get_succ() const {
+    return this->_value & 0b00000000111100000000000000000000;
   }
 };
 
 class RV32I {
 private:
   Registers _regs;
+  Ram _ram;
 
 
-  void instruction_fetch() {}
-  void instruction_decode() {}
+  Instruction* instruction_fetch() {
+    uint32_t value = _ram.read(_regs.pc++);
+    Instruction* inst = new Instruction(value);
+    return inst;
+  }
+
+  void instruction_decode(Instruction &inst) {
+    uint32_t decoded = inst.get_opcode();
+    log_debug_hex("decoded", decoded);
+    switch(decoded) {
+      case OPCODE_LUI: {
+        log_info("opcode lui");
+        uint32_t rd = inst.get_rd();
+        uint32_t imm = inst.get_imm31_12();
+        log_debug_hex("rd", rd);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_AUIPC: {
+        log_info("opcode auipc");
+        uint32_t rd = inst.get_rd();
+        uint32_t imm = inst.get_imm31_12();
+        log_debug_hex("rd", rd);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_JAL: {
+        log_info("opcode jal");
+        // TOOD: handle this command.
+        uint32_t rd = inst.get_rd();
+        uint32_t imm = inst.get_imm31_12();
+        log_debug_hex("rd", rd);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_JALR: {
+        log_info("opcode jalr");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        uint32_t imm = inst.get_imm11_0();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_BRANCH: {
+        log_info("opcode branch");
+        // TOOD: handle this command.
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        uint32_t rs2 = inst.get_rs2();
+        uint32_t imm = inst.get_imm11_0();
+        log_debug_hex("imm[4:1|11]", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        log_debug_hex("rs2", rs2);
+        log_debug_hex("imm[12|10:5]", imm);
+        break;
+      }
+      case OPCODE_LOAD: {
+        log_info("opcode load");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        uint32_t imm = inst.get_imm11_0();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_STORE: {
+        log_info("opcode store");
+        // TOOD: handle this command.
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        uint32_t rs2 = inst.get_rs2();
+        uint32_t imm = inst.get_imm11_0();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        log_debug_hex("rs2", rs2);
+        log_debug_hex("imm", imm);
+        break;
+      }
+      case OPCODE_INT_COMP_I: {
+        log_info("opcode int comp I");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        switch(funct3) {
+          case FUNCT3_ADDI: {
+            log_info("ADDI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_SLTI: {
+            log_info("SLTI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_SLTIU: {
+            log_info("SLTIU");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_XORI: {
+            log_info("XORI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_ORI: {
+            log_info("ORI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_ANDI: {
+            log_info("ANDI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          case FUNCT3_SLLI: {
+            log_info("SLLI");
+            uint32_t imm = inst.get_imm11_0();
+            break;
+          }
+          // NOTE: they are both equl to 5
+          //case FUNCT3_SRLI:
+          case FUNCT3_SRAI: {
+            uint32_t funct7 = inst.get_funct7();
+            uint32_t shamt = inst.get_rs2();
+            log_debug_hex("funct7", funct7);
+            log_debug_hex("shamt", shamt);
+            switch(funct7) {
+              case 0x0: { // SRLI
+                log_info("SRLI");
+                break;
+              }
+              case 0x20000000: { // SRAI
+                log_info("SRAI");
+                break;
+              }
+              default: {
+                log_error("Cannout decode instruction: 0x", inst.get_value());
+                exit(1);
+              }
+            }
+            break;
+          }
+        }
+        break;
+      }
+      case OPCODE_INT_COMP_R: {
+        log_info("opcode int comp R");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        uint32_t rs2 = inst.get_rs2();
+        uint32_t funct7 = inst.get_funct7();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        log_debug_hex("rs2", rs2);
+        log_debug_hex("funct7", funct7);
+        switch(funct7) {
+          case 0x0: {
+            switch(funct3) {
+              case FUNCT3_ADD: {
+                log_info("ADD");
+                break;
+              }
+              case FUNCT3_SLL: {
+                log_info("SLL");
+                break;
+              }
+              case FUNCT3_SLT: {
+                log_info("SLT");
+                break;
+              }
+              case FUNCT3_SLTU: {
+                log_info("SLTU");
+                break;
+              }
+              case FUNCT3_XOR: {
+                log_info("XOR");
+                break;
+              }
+              case FUNCT3_SRL: {
+                log_info("SRL");
+                break;
+              }
+              case FUNCT3_OR: {
+                log_info("OR");
+                break;
+              }
+              case FUNCT3_AND: {
+                log_info("AND");
+                break;
+              }
+              default: {
+                log_error("Cannout decode instruction: 0x", inst.get_value());
+                exit(1);
+              }
+            }
+            break;
+          }
+          case 0x20000000: {
+            switch(funct3) {
+              case FUNCT3_SUB: {
+                log_info("SUB");
+                break;
+              }
+              case FUNCT3_SRA: {
+                log_info("SRA");
+                break;
+              }
+              default: {
+                log_error("Cannout decode instruction: 0x", inst.get_value());
+                exit(1);
+              }
+            }
+            break;
+          }
+          default: {
+            log_error("Cannout decode instruction: 0x", inst.get_value());
+            exit(1);
+          }
+        }
+
+        break;
+      }
+      case OPCODE_FENCE: {
+        log_info("opcode fence");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        if (rs1 != 0x0) {
+          log_error("Cannout decode instruction: 0x", inst.get_value());
+          exit(1);
+        }
+        switch(funct3) {
+          case FUNCT3_FENCE: {
+            uint32_t pred = inst.get_pred();
+            uint32_t succ = inst.get_succ();
+            log_debug_hex("pred", pred);
+            log_debug_hex("succ", succ);
+            break;
+          }
+          case FUNCT3_FENCEI: {
+            uint32_t imm = inst.get_imm11_0();
+            log_debug_hex("imm", imm);
+            if (imm != 0x0) {
+              log_error("Cannout decode instruction", inst.get_value());
+              exit(1);
+            }
+            break;
+          }
+          default: {
+            log_error("Cannout decode instruction", inst.get_value());
+            exit(1);
+          }
+        }
+        break;
+      }
+      case OPCODE_R: {
+        log_info("opcode R");
+        uint32_t rd = inst.get_rd();
+        uint32_t funct3 = inst.get_funct3();
+        uint32_t rs1 = inst.get_rs1();
+        log_debug_hex("rd", rd);
+        log_debug_hex("funct3", funct3);
+        log_debug_hex("rs1", rs1);
+        if (rs1 != 0x0) {
+          log_error("Cannout decode instruction: 0x", inst.get_value());
+          exit(1);
+        }
+        if (rd == 0x0) {
+          uint32_t imm = inst.get_imm11_0();
+          log_debug_hex("imm", imm);
+          switch(imm){
+            case IMM_SCALL: {
+              log_info("SCALL");
+              break;
+            }
+            case IMM_SBREAK: {
+              log_info("SBREAK");
+              break;
+            }
+            case IMM_SRDCYCLE: {
+              log_info("SRDCYCLE");
+              break;
+            }
+            case IMM_SRDCYCLEH: {
+              log_info("SRDCYCLEH");
+              break;
+            }
+            case IMM_RDTIME: {
+              log_info("RDTIME");
+              break;
+            }
+            case IMM_RDTIMEH: {
+              log_info("RDTIMEH");
+              break;
+            }
+            case IMM_RDINSTRET: {
+              log_info("RDINSTRET");
+              break;
+            }
+            case IMM_RDINSTRETH: {
+              log_info("RDINSTRETH");
+              break;
+            }
+            default: {
+              log_error("Cannout decode instruction", inst.get_value());
+              exit(1);
+            }
+          }
+        }
+        break;
+      }
+      default: {
+        log_error("Cannout decode instruction", inst.get_value());
+        exit(1);
+      }
+    }
+  }
+
   void execute() {}
+  
   void memory_access() {}
+
   void write_back() {}
 
 public:
@@ -185,7 +575,14 @@ public:
    * 5. WB (write back)
    */
   void run() {
-     
+    int i = 0;
+    while (i++ < 1) {
+      Instruction* inst = instruction_fetch();
+      instruction_decode(*inst);
+      execute();
+      memory_access();
+      write_back();
+    }
   }
 };
 
@@ -193,6 +590,6 @@ public:
 
 int main() {
   auto rv = new RV32I();
-
+  rv->run();
   return 0;
 }
