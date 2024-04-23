@@ -21,45 +21,6 @@ void inline log_info(const std::string data) {
 #endif
 }
 
-// NOTE: this representation of registers is not the best
-// TODO: come up with better representaion
-class Registers {
-public:
-  uint32_t x0 = 0;  // zero
-  uint32_t x1 = 0;  // ra - return addres
-  uint32_t x2 = 0;  // sp - stack pointer
-  uint32_t x3 = 0;  // gp - global pointer
-  uint32_t x4 = 0;  // tp - thread pointer
-  uint32_t x5 = 0;  // t0 - temporary
-  uint32_t x6 = 0;  // t1 - temporary
-  uint32_t x7 = 0;  // t2 - temporary
-  uint32_t x8 = 0;  // fp/s0 - save register / frame pointer
-  uint32_t x9 = 0;  // s1 - save register
-  uint32_t x10 = 0; // a0 - function argument / return value
-  uint32_t x11 = 0; // a1 - function argument / return value
-  uint32_t x12 = 0; // a2 - function arugment  
-  uint32_t x13 = 0; // a3
-  uint32_t x14 = 0; // a4
-  uint32_t x15 = 0; // a5
-  uint32_t x16 = 0; // a6
-  uint32_t x17 = 0; // a7
-  uint32_t x18 = 0; // s2 - saved register
-  uint32_t x19 = 0; // s3
-  uint32_t x20 = 0; // s4
-  uint32_t x21 = 0; // s5
-  uint32_t x22 = 0; // s6
-  uint32_t x23 = 0; // s7
-  uint32_t x24 = 0; // s8
-  uint32_t x25 = 0; // s9
-  uint32_t x26 = 0; // s10
-  uint32_t x27 = 0; // s11
-  uint32_t x28 = 0; // t3 - temporary
-  uint32_t x29 = 0; // t4
-  uint32_t x30 = 0; // t5
-  uint32_t x31 = 0; // t6
-  uint32_t pc = 0;
-};
-
 enum {
   OPCODE_LUI        = 0b00110111,
   OPCODE_AUIPC      = 0b00010111,
@@ -147,6 +108,28 @@ enum {
   IMM_RDINSTRETH = 0b11001000001000000000000000000000,
 };
 
+class Registers {
+private:
+  uint32_t _pc = 0;
+  uint32_t _regs[32];
+public:
+  uint32_t get_pc() const {
+    return this->_pc;
+  }
+
+  void increment_pc() {
+    this->_pc++;
+  }
+
+  uint32_t& operator[](uint8_t index) {
+    if (index < 0 || index >= 32) {
+      throw std::out_of_range("Invalid register number");
+      exit(1);
+    }
+    return this->_regs[index];
+  }
+
+};
 
 class Ram {
 private:
@@ -156,11 +139,11 @@ public:
   Ram() { this->_data[0] = 0b000000001100011110011100110011; }
 
   uint32_t read(uint32_t addr) const {
-    return _data[addr];
+    return this->_data[addr];
   }
 
   void write(uint32_t addr, uint32_t data) {
-    _data[addr] = data;
+    this->_data[addr] = data;
   }
 };
 
@@ -222,9 +205,9 @@ private:
   Registers _regs;
   Ram _ram;
 
-
   Instruction* instruction_fetch() {
-    uint32_t value = _ram.read(_regs.pc++);
+    uint32_t value = _ram.read(_regs.get_pc());
+    _regs.increment_pc();
     Instruction* inst = new Instruction(value);
     return inst;
   }
