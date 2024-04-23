@@ -129,6 +129,10 @@ public:
     this->_pc++;
   }
 
+  void increment_pc_by_offset(uint32_t offset) {
+    this->_pc += this->_pc + offset;
+  }
+
   uint32_t& operator[](uint8_t index) {
     if (index < 0 || index >= 32) {
       throw std::out_of_range("Invalid register number");
@@ -230,6 +234,8 @@ private:
         uint32_t imm = inst.get_imm31_12();
         log_debug_hex("rd", rd);
         log_debug_hex("imm", imm);
+        // TODO: verify if correct.
+        _regs[rd] = sext(imm, 32);
         break;
       }
       case OPCODE_AUIPC: {
@@ -238,15 +244,20 @@ private:
         uint32_t imm = inst.get_imm31_12();
         log_debug_hex("rd", rd);
         log_debug_hex("imm", imm);
+        // TODO: verify if correct.
+        _regs[rd] = (uint32_t)sext(imm, 32) + _regs.get_pc();
         break;
       }
       case OPCODE_JAL: {
         log_info("opcode jal");
-        // TOOD: handle this command.
         uint32_t rd = inst.get_rd();
         uint32_t imm = inst.get_imm31_12();
         log_debug_hex("rd", rd);
         log_debug_hex("imm", imm);
+        // TODO: verify if correct.
+        _regs[rd] = _regs.get_pc() + 1; // NOTE: Originally 4 is added.
+        uint32_t offset = (uint32_t)sext(imm, 22);
+        _regs.increment_pc_by_offset(offset);
         break;
       }
       case OPCODE_JALR: {
@@ -259,6 +270,7 @@ private:
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("imm", imm);
+        throw std::runtime_error("Insctruion not implemented yet.");
         break;
       }
       case OPCODE_BRANCH: {
@@ -274,6 +286,7 @@ private:
         log_debug_hex("rs1", rs1);
         log_debug_hex("rs2", rs2);
         log_debug_hex("imm[12|10:5]", imm);
+        throw std::runtime_error("Insctruion not implemented yet.");
         break;
       }
       case OPCODE_LOAD: {
@@ -286,6 +299,7 @@ private:
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("imm", imm);
+        throw std::runtime_error("Insctruion not implemented yet.");
         break;
       }
       case OPCODE_STORE: {
@@ -301,6 +315,7 @@ private:
         log_debug_hex("rs1", rs1);
         log_debug_hex("rs2", rs2);
         log_debug_hex("imm", imm);
+        throw std::runtime_error("Insctruion not implemented yet.");
         break;
       }
       case OPCODE_INT_COMP_I: {
@@ -493,6 +508,7 @@ private:
             uint32_t succ = inst.get_succ();
             log_debug_hex("pred", pred);
             log_debug_hex("succ", succ);
+            throw std::runtime_error("Insctruion not implemented yet.");
             break;
           }
           case FUNCT3_FENCEI: {
@@ -502,6 +518,7 @@ private:
               log_error("Cannout decode instruction", inst.get_value());
               exit(1);
             }
+            throw std::runtime_error("Insctruion not implemented yet.");
             break;
           }
           default: {
@@ -529,34 +546,42 @@ private:
           switch(imm){
             case IMM_SCALL: {
               log_info("SCALL");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_SBREAK: {
               log_info("SBREAK");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_SRDCYCLE: {
               log_info("SRDCYCLE");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_SRDCYCLEH: {
               log_info("SRDCYCLEH");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_RDTIME: {
               log_info("RDTIME");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_RDTIMEH: {
               log_info("RDTIMEH");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_RDINSTRET: {
               log_info("RDINSTRET");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             case IMM_RDINSTRETH: {
               log_info("RDINSTRETH");
+              throw std::runtime_error("Insctruion not implemented yet.");
               break;
             }
             default: {
