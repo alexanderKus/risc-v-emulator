@@ -382,34 +382,43 @@ private:
             switch(funct3) {
               case FUNCT3_ADD: {
                 log_info("ADD");
+                _regs[rd] = _regs[rs1] + _regs[rs2];
                 break;
               }
               case FUNCT3_SLL: {
                 log_info("SLL");
+                _regs[rd] = _regs[rs1] << _regs[rs2];
                 break;
               }
               case FUNCT3_SLT: {
                 log_info("SLT");
+                _regs[rd] = ((int32_t)_regs[rs1]) < ((int32_t)_regs[rs2]);
                 break;
               }
               case FUNCT3_SLTU: {
                 log_info("SLTU");
+                _regs[rd] = _regs[rs1] < _regs[rs2];
                 break;
               }
               case FUNCT3_XOR: {
                 log_info("XOR");
+                _regs[rd] = _regs[rs1] ^ _regs[rs2];
                 break;
               }
               case FUNCT3_SRL: {
                 log_info("SRL");
+                // TODO: verify if this is correct for signed number.
+                _regs[rd] = _regs[rs1] >> _regs[rs2];
                 break;
               }
               case FUNCT3_OR: {
                 log_info("OR");
+                _regs[rd] = _regs[rs1] | _regs[rs2];
                 break;
               }
               case FUNCT3_AND: {
                 log_info("AND");
+                _regs[rd] = _regs[rs1] & _regs[rs2];
                 break;
               }
               default: {
@@ -423,10 +432,13 @@ private:
             switch(funct3) {
               case FUNCT3_SUB: {
                 log_info("SUB");
+                _regs[rd] = _regs[rs1] - _regs[rs2];
                 break;
               }
               case FUNCT3_SRA: {
                 log_info("SRA");
+                // TODO: verify if this is correct for signed number.
+                _regs[rd] = _regs[rs1] >> _regs[rs2];
                 break;
               }
               default: {
