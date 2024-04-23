@@ -353,7 +353,7 @@ private:
             log_info("SLLI");
             uint32_t funct7 = inst.get_funct7();
             uint32_t shamt = inst.get_rs2();
-            _regs[rd] = _regs[rs1] << shmat;
+            _regs[rd] = _regs[rs1] << shamt;
             break;
           }
           // NOTE: they are both equl to 5
@@ -367,12 +367,12 @@ private:
               case 0x0: {
                 log_info("SRLI");
                 // TODO: Fix this right logical shift
-                _regs[rd] = _regs[rs1] >> shmat;
+                _regs[rd] = _regs[rs1] >> shamt;
                 break;
               }
               case 0x20000000: {
                 log_info("SRAI");
-                _regs[rd] = _regs[rs1] >> shmat;
+                _regs[rd] = _regs[rs1] >> shamt;
                 break;
               }
               default: {
