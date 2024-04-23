@@ -21,6 +21,14 @@ void inline log_info(const std::string data) {
 #endif
 }
 
+constexpr int32_t sext(int32_t imm, int bits) {
+  int sign_pos = bits - 1;
+  if (imm & (1 << sign_pos)) {
+    int32_t extended_imm = imm | (0xffffffff << bits);
+  }
+  return imm;
+}
+
 enum {
   OPCODE_LUI        = 0b00110111,
   OPCODE_AUIPC      = 0b00010111,
@@ -306,37 +314,46 @@ private:
         switch(funct3) {
           case FUNCT3_ADDI: {
             log_info("ADDI");
-            uint32_t imm = inst.get_imm11_0();
+            // TODO: verify if this correct.
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = _regs[rs1] + sext(imm, 12);
             break;
           }
           case FUNCT3_SLTI: {
             log_info("SLTI");
-            uint32_t imm = inst.get_imm11_0();
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = (int32_t)_regs[rs1] < sext(imm, 12);
             break;
           }
           case FUNCT3_SLTIU: {
             log_info("SLTIU");
-            uint32_t imm = inst.get_imm11_0();
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = _regs[rs1] < (uint32_t)sext(imm, 12);
             break;
           }
           case FUNCT3_XORI: {
             log_info("XORI");
-            uint32_t imm = inst.get_imm11_0();
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = _regs[rs1] ^ sext(imm, 12);
             break;
           }
           case FUNCT3_ORI: {
             log_info("ORI");
-            uint32_t imm = inst.get_imm11_0();
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = _regs[rs1] | sext(imm, 12);
             break;
           }
           case FUNCT3_ANDI: {
             log_info("ANDI");
-            uint32_t imm = inst.get_imm11_0();
+            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
+            _regs[rd] = _regs[rs1] & sext(imm, 12);
             break;
           }
           case FUNCT3_SLLI: {
             log_info("SLLI");
-            uint32_t imm = inst.get_imm11_0();
+            uint32_t funct7 = inst.get_funct7();
+            uint32_t shamt = inst.get_rs2();
+            _regs[rd] = _regs[rs1] << shmat;
             break;
           }
           // NOTE: they are both equl to 5
@@ -347,12 +364,15 @@ private:
             log_debug_hex("funct7", funct7);
             log_debug_hex("shamt", shamt);
             switch(funct7) {
-              case 0x0: { // SRLI
+              case 0x0: {
                 log_info("SRLI");
+                // TODO: Fix this right logical shift
+                _regs[rd] = _regs[rs1] >> shmat;
                 break;
               }
-              case 0x20000000: { // SRAI
+              case 0x20000000: {
                 log_info("SRAI");
+                _regs[rd] = _regs[rs1] >> shmat;
                 break;
               }
               default: {
@@ -407,7 +427,7 @@ private:
               }
               case FUNCT3_SRL: {
                 log_info("SRL");
-                // TODO: verify if this is correct for signed number.
+                // TODO: Fix this right logical shift
                 _regs[rd] = _regs[rs1] >> _regs[rs2];
                 break;
               }
@@ -437,7 +457,6 @@ private:
               }
               case FUNCT3_SRA: {
                 log_info("SRA");
-                // TODO: verify if this is correct for signed number.
                 _regs[rd] = _regs[rs1] >> _regs[rs2];
                 break;
               }
