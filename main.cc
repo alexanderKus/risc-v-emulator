@@ -202,6 +202,14 @@ public:
   uint32_t get_imm11_0() const {
     return this->_value & 0b11111111111100000000000000000000;
   }
+
+  uint32_t get_imm_branch() const {
+    return ((this->_value & 0b10000000000000000000000000000000) >> 19) |
+           ((this->_value & 0b01111110000000000000000000000000) >> 20) |
+           (((this->_value & 0b00000000000000000000111100000000) >> 7) & 0x1E) | // NOTE: & 0x1E is becauce bit at 0 position is alawys 0.
+           ((this->_value & 0b00000000000000000000000010000000) << 4);
+
+  }
   
   uint32_t get_pred() const {
     return this->_value & 0b00001111000000000000000000000000;
@@ -275,18 +283,68 @@ private:
       }
       case OPCODE_BRANCH: {
         log_info("opcode branch");
-        // TOOD: handle this command.
-        uint32_t rd = inst.get_rd();
         uint32_t funct3 = inst.get_funct3();
         uint32_t rs1 = inst.get_rs1();
         uint32_t rs2 = inst.get_rs2();
-        uint32_t imm = inst.get_imm11_0();
-        log_debug_hex("imm[4:1|11]", rd);
+        uint32_t imm = inst.get_imm_branch();
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("rs2", rs2);
-        log_debug_hex("imm[12|10:5]", imm);
-        throw std::runtime_error("Insctruion not implemented yet.");
+        log_debug_hex("imm_branch", imm);
+        switch(funct3){
+          case FUNCT3_BEQ: {
+            log_info("BEQ - check");
+            if (_regs[rs1] == _regs[rs2]) {
+              log_info("BEQ");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          case FUNCT3_BNE: {
+            log_info("BNE - check");
+            if (_regs[rs1] != _regs[rs2]) {
+              log_info("BNE");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          case FUNCT3_BLT: {
+            log_info("BLT - check");
+            if ((int32_t)_regs[rs1] < (int32_t)_regs[rs2]) {
+              log_info("BLT");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          case FUNCT3_BGE: {
+            log_info("BGE - check");
+            if ((int32_t)_regs[rs1] >= (int32_t)_regs[rs2]) {
+              log_info("BGE");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          case FUNCT3_BLTU: {
+            log_info("BLTU - check");
+            if (_regs[rs1] < _regs[rs2]) {
+              log_info("BLTU");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          case FUNCT3_BGEU: {
+            log_info("BGEU - check");
+            if (_regs[rs1] >= _regs[rs2]) {
+            log_info("BGEU");
+              _regs.increment_pc_by_offset(sext(imm, 12));
+            }
+            break;
+          }
+          default: {
+            log_error("Cannout decode instruction: 0x", inst.get_value());
+            exit(1);
+          }
+        }
         break;
       }
       case OPCODE_LOAD: {
