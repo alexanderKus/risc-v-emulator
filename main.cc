@@ -5,8 +5,8 @@
 #include <stdexcept>
 #include <format>
 
-void inline log_error(const std::string err, const uint32_t inst) {
-  std::cerr << "[ERROR] " << err << " 0x" << std::hex << inst << std::endl;
+void inline log_error(const std::string err, const uint32_t x) {
+  std::cerr << "[ERROR] " << err << " 0x" << std::hex << x << std::endl;
 }
 
 void inline log_debug_hex(const std::string name, const uint32_t x) {
@@ -57,10 +57,10 @@ enum {
 
   //LOAD
   FUNCT3_LOAD_BYTE   = 0b00000000000000000000000000000000,
-  FUNCT3_LOAD_HALF   = 0b00000000000000000000000000000000,
-  FUNCT3_LOAD_WORD   = 0b00000000000000000000000000000000,
-  FUNCT3_LOAD_BYTE_U = 0b00000000000000000000000000000000,
-  FUNCT3_LOAD_HAFL_U = 0b00000000000000000000000000000000,
+  FUNCT3_LOAD_HALF   = 0b00000000000000000001000000000000,
+  FUNCT3_LOAD_WORD   = 0b00000000000000000010000000000000,
+  FUNCT3_LOAD_BYTE_U = 0b00000000000000000100000000000000,
+  FUNCT3_LOAD_HALF_U = 0b00000000000000000101000000000000,
 
   // STORE
   FUNCT3_STORE_BYTE = 0b00000000000000000000000000000000,
@@ -146,16 +146,28 @@ public:
 class Ram {
 private:
   uint32_t _data[1024 * 1024 * 4];
+
+  bool is_valid(uint32_t addr) const {
+    return addr >= 0 || addr < (1024 * 1024 * 4);
+  }
 public:
   // OR instruction
   Ram() { this->_data[0] = 0b000000001100011110011100110011; }
 
   uint32_t read(uint32_t addr) const {
-    return this->_data[addr];
+    if (this->is_valid(addr)) {
+      return this->_data[addr];
+    }
+    log_error("Invalid address", addr);
+    exit(1);
   }
 
   void write(uint32_t addr, uint32_t data) {
-    this->_data[addr] = data;
+    if (this->is_valid(addr)) { 
+      this->_data[addr] = data;
+    }
+    log_error("Invalid address", addr);
+    exit(1);
   }
 };
 
@@ -196,11 +208,16 @@ public:
   }
 
   uint32_t get_imm31_12() const {
-    return this->_value & 0b11111111111111111111000000000000;
+    return this->_value & 0b11111111111111111111000000000000 >> 12;
   }
 
   uint32_t get_imm11_0() const {
-    return this->_value & 0b11111111111100000000000000000000;
+    return this->_value & 0b11111111111100000000000000000000 >> 20;
+  }
+
+  uint32_t get_imm_store() const {
+    return ((this->_value & 0b11111111000000000000000000000000) >> 25) |
+           ((this->_value & 0b00000000000000000000111110000000) >> 7);
   }
 
   uint32_t get_imm_branch() const {
@@ -208,7 +225,6 @@ public:
            ((this->_value & 0b01111110000000000000000000000000) >> 20) |
            (((this->_value & 0b00000000000000000000111100000000) >> 7) & 0x1E) | // NOTE: & 0x1E is becauce bit at 0 position is alawys 0.
            ((this->_value & 0b00000000000000000000000010000000) << 4);
-
   }
   
   uint32_t get_pred() const {
@@ -353,27 +369,76 @@ private:
         uint32_t funct3 = inst.get_funct3();
         uint32_t rs1 = inst.get_rs1();
         uint32_t imm = inst.get_imm11_0();
+        uint32_t addr = (uint32_t)((int32_t)_regs[rs1] + sext(imm, 12));
         log_debug_hex("rd", rd);
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("imm", imm);
-        throw std::runtime_error("Insctruion not implemented yet.");
+        log_debug_hex("addr", addr);
+        // NOTE: I do not think there is a difference between signed and unsiged load.
+        switch(funct3) {
+          case FUNCT3_LOAD_BYTE: {
+            _regs[rd] = _ram.read(addr) & 0x000000FF;
+            break;
+          }
+          case FUNCT3_LOAD_HALF: {
+            _regs[rd] = _ram.read(addr) & 0x0000FFFF;
+            break;
+          }
+          case FUNCT3_LOAD_WORD: {
+            _regs[rd] = _ram.read(addr) & 0xFFFFFFFF;
+            break;
+          }
+          case FUNCT3_LOAD_BYTE_U: {
+            _regs[rd] = _ram.read(addr) & 0x000000FF;
+            break;
+          }
+          case FUNCT3_LOAD_HALF_U: {
+            _regs[rd] = _ram.read(addr) & 0x0000FFFF;
+            break;
+          }
+          default: {
+            log_error("Cannout decode instruction: 0x", inst.get_value());
+            exit(1);
+          }
+        }
         break;
       }
       case OPCODE_STORE: {
         log_info("opcode store");
-        // TOOD: handle this command.
         uint32_t rd = inst.get_rd();
         uint32_t funct3 = inst.get_funct3();
         uint32_t rs1 = inst.get_rs1();
         uint32_t rs2 = inst.get_rs2();
-        uint32_t imm = inst.get_imm11_0();
+        uint32_t imm = inst.get_imm_store();
+        uint32_t addr = (uint32_t)((int32_t)_regs[rs1] + sext(imm, 12));
         log_debug_hex("rd", rd);
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("rs2", rs2);
         log_debug_hex("imm", imm);
-        throw std::runtime_error("Insctruion not implemented yet.");
+        log_debug_hex("addr", addr);
+        switch(funct3) {
+          case FUNCT3_STORE_BYTE: {
+            uint32_t val = _regs[rs2] & 0b00000000000000000000000001111111;
+            _ram.write(addr, val);
+            break;
+          }
+          case FUNCT3_STORE_HALF: {
+            uint32_t val = _regs[rs2] & 0b00000000000000001111111111111111;
+            _ram.write(addr, val);
+            break;
+          }
+          case FUNCT3_STORE_WORD: {
+            uint32_t val = _regs[rs2];
+            _ram.write(addr, val);
+            break;
+          }
+          default: {
+            log_error("Cannout decode instruction: 0x", inst.get_value());
+            exit(1);
+          }
+        }
         break;
       }
       case OPCODE_INT_COMP_I: {
@@ -381,44 +446,40 @@ private:
         uint32_t rd = inst.get_rd();
         uint32_t funct3 = inst.get_funct3();
         uint32_t rs1 = inst.get_rs1();
+        int32_t imm = inst.get_imm11_0();
         log_debug_hex("rd", rd);
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
+        log_debug_hex("imm", imm);
         switch(funct3) {
           case FUNCT3_ADDI: {
             log_info("ADDI");
             // TODO: verify if this correct.
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = _regs[rs1] + sext(imm, 12);
             break;
           }
           case FUNCT3_SLTI: {
             log_info("SLTI");
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = (int32_t)_regs[rs1] < sext(imm, 12);
             break;
           }
           case FUNCT3_SLTIU: {
             log_info("SLTIU");
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = _regs[rs1] < (uint32_t)sext(imm, 12);
             break;
           }
           case FUNCT3_XORI: {
             log_info("XORI");
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = _regs[rs1] ^ sext(imm, 12);
             break;
           }
           case FUNCT3_ORI: {
             log_info("ORI");
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = _regs[rs1] | sext(imm, 12);
             break;
           }
           case FUNCT3_ANDI: {
             log_info("ANDI");
-            int32_t imm = (int32_t)(inst.get_imm11_0() >> 20);
             _regs[rd] = _regs[rs1] & sext(imm, 12);
             break;
           }
