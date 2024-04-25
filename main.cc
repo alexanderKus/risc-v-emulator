@@ -280,7 +280,7 @@ private:
         log_debug_hex("imm", imm);
         // TODO: verify if correct.
         _regs[rd] = _regs.get_pc() + 1; // NOTE: Originally 4 is added.
-        uint32_t offset = (uint32_t)sext(imm, 22);
+        uint32_t offset = (uint32_t)sext(imm, 20);
         _regs.increment_pc_by_offset(offset);
         break;
       }
