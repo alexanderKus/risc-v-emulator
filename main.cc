@@ -4,6 +4,7 @@
 #include <cassert>
 #include <stdexcept>
 #include <format>
+#include <fstream>
 
 void inline log_error(const std::string err, const uint32_t x) {
   std::cerr << "[ERROR] " << err << " 0x" << std::hex << x << std::endl;
@@ -765,7 +766,16 @@ public:
   }
 };
 
-int main() {
+int main(int argc, char **argv) {
+  if (argc < 2) {
+    std::cout << "[ERROR] Usage: ./main <filename>" << std::endl;
+    exit(1);
+  }
+  char buffer[1024 * 1024 * 4];
+  std::ifstream file(argv[1], std::ios::binary);
+  file.read(buffer, sizeof(buffer));
+  file.close();
+
   auto rv = new RV32I();
   rv->run();
   return 0;
