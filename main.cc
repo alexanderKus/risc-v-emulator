@@ -173,6 +173,12 @@ public:
     log_error("Invalid address", addr);
     exit(1);
   }
+  
+  void load(std::vector<uint32_t> payload) {
+    for(uint32_t i = 0; i < payload.size(); i++) {
+      write(i, payload.at(i));
+    }
+  }
 };
 
 class Instruction {
@@ -736,6 +742,10 @@ private:
 
 public:
   RV32I() { }
+
+  void load_to_ram(std::vector<uint32_t> data) {
+    _ram.load(data);
+  }
 
   void run() {
     int i = 0;
