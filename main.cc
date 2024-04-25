@@ -145,6 +145,14 @@ public:
     return this->_regs[index];
   }
 
+  void dump_regs() const {
+    std::cout << "\tDumping regs...\n";
+    for(int i = 0; i < 32; i++) {
+      std::cout << "\tx1: 0x" << std::hex << _regs[i] << '\n';
+    }
+    std::cout << "\tDone" << std::endl;
+  }
+
 };
 
 class Ram {
@@ -156,7 +164,7 @@ private:
   }
 public:
   // OR instruction
-  Ram() { this->_data[0] = 0b000000001100011110011100110011; }
+  Ram() { /* this->_data[0] = 0b000000001100011110011100110011; */}
 
   uint32_t read(uint32_t addr) const {
     if (this->is_valid(addr)) {
@@ -753,6 +761,7 @@ public:
       Instruction* inst = instruction_fetch();
       execute(*inst);
     }
+    _regs.dump_regs();
   }
 };
 
