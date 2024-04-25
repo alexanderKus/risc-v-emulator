@@ -125,6 +125,10 @@ public:
     return this->_pc;
   }
 
+  void set_pc(uint32_t val) {
+    this->_pc = val;
+  }
+
   void increment_pc() {
     this->_pc++;
   }
@@ -281,6 +285,7 @@ private:
         // TODO: verify if correct.
         _regs[rd] = _regs.get_pc() + 1; // NOTE: Originally 4 is added.
         uint32_t offset = (uint32_t)sext(imm, 20);
+        log_info("JAL");
         _regs.increment_pc_by_offset(offset);
         break;
       }
@@ -290,11 +295,17 @@ private:
         uint32_t funct3 = inst.get_funct3();
         uint32_t rs1 = inst.get_rs1();
         uint32_t imm = inst.get_imm11_0();
+        uint32_t jaddr = (_regs[rs1] + sext(imm, 12)) & ~1;
         log_debug_hex("rd", rd);
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         log_debug_hex("imm", imm);
-        throw std::runtime_error("Insctruion not implemented yet.");
+        log_debug_hex("jaddr", jaddr);
+        // NOTE: +1 not +4
+        log_info("JALR");
+        uint32_t t = _regs.get_pc() + 1; 
+        _regs.set_pc(jaddr);
+        regs[rd] = t;
         break;
       }
       case OPCODE_BRANCH: {
