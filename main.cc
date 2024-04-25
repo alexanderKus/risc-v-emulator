@@ -252,7 +252,7 @@ private:
     return inst;
   }
 
-  void instruction_decode(Instruction &inst) {
+  void execute(Instruction &inst) {
     uint32_t opcode = inst.get_opcode();
     log_debug_hex("opcode", opcode);
     switch(opcode) {
@@ -305,7 +305,7 @@ private:
         log_info("JALR");
         uint32_t t = _regs.get_pc() + 1; 
         _regs.set_pc(jaddr);
-        regs[rd] = t;
+        _regs[rd] = t;
         break;
       }
       case OPCODE_BRANCH: {
@@ -734,31 +734,14 @@ private:
     }
   }
 
-  void execute() {}
-  
-  void memory_access() {}
-
-  void write_back() {}
-
 public:
   RV32I() { }
 
-  /*
-   * Pipeline
-   * 1. IF (instruction fetch)
-   * 2. ID (instruction decode)
-   * 3. EX (execute)
-   * 4. MA (memory access)
-   * 5. WB (write back)
-   */
   void run() {
     int i = 0;
     while (i++ < 1) {
-      Instruction* inst = instruction_fetch();
-      instruction_decode(*inst);
-      execute();
-      memory_access();
-      write_back();
+      Instruction* inst = this->instruction_fetch();
+      execute(*inst);
     }
   }
 };
