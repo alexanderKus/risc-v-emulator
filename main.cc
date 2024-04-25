@@ -119,7 +119,7 @@ enum {
 class Registers {
 private:
   uint32_t _pc = 0;
-  uint32_t _regs[32];
+  uint32_t _regs[32] = {0};
 public:
   uint32_t get_pc() const {
     return this->_pc;
