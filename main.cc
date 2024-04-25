@@ -740,13 +740,11 @@ public:
   void run() {
     int i = 0;
     while (i++ < 1) {
-      Instruction* inst = this->instruction_fetch();
+      Instruction* inst = instruction_fetch();
       execute(*inst);
     }
   }
 };
-
-
 
 int main() {
   auto rv = new RV32I();
