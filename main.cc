@@ -378,22 +378,27 @@ private:
         // NOTE: I do not think there is a difference between signed and unsiged load.
         switch(funct3) {
           case FUNCT3_LOAD_BYTE: {
+            log_info("LB");
             _regs[rd] = _ram.read(addr) & 0x000000FF;
             break;
           }
           case FUNCT3_LOAD_HALF: {
+            log_info("LH");
             _regs[rd] = _ram.read(addr) & 0x0000FFFF;
             break;
           }
           case FUNCT3_LOAD_WORD: {
+            log_info("LW");
             _regs[rd] = _ram.read(addr) & 0xFFFFFFFF;
             break;
           }
           case FUNCT3_LOAD_BYTE_U: {
+            log_info("LBU");
             _regs[rd] = _ram.read(addr) & 0x000000FF;
             break;
           }
           case FUNCT3_LOAD_HALF_U: {
+            log_info("LHU");
             _regs[rd] = _ram.read(addr) & 0x0000FFFF;
             break;
           }
