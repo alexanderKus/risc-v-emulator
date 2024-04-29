@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <format>
 #include <fstream>
+#include <cstdint>
 
 void inline log_error(const std::string err, const uint32_t x) {
   std::cerr << "[ERROR] " << err << " 0x" << std::hex << x << std::endl;
