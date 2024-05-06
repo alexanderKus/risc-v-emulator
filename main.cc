@@ -151,7 +151,7 @@ public:
   void dump_regs() const {
     std::cout << "\tDumping regs...\n";
     for(int i = 0; i < 32; i++) {
-      std::cout << "\tx1: 0x" << std::hex << _regs[i] << '\n';
+      std::cout << "\tx-" << i << ": 0x" << std::hex << _regs[i] << '\n';
     }
     std::cout << "\tDone" << std::endl;
   }
@@ -210,7 +210,7 @@ public:
   }
   
   uint32_t get_rd() const {
-    return this->_value & 0b00000000000000000000111110000000;
+    return (this->_value & 0b00000000000000000000111110000000) >> 7;
   }
 
   uint32_t get_funct3() const {
@@ -386,7 +386,7 @@ private:
             break;
           }
           default: {
-            log_error("Cannout decode instruction: 0x", inst.get_value());
+            log_error("[BRANCH] Cannot decode instruction: 0x", inst.get_value());
             exit(1);
           }
         }
@@ -432,7 +432,7 @@ private:
             break;
           }
           default: {
-            log_error("Cannout decode instruction: 0x", inst.get_value());
+            log_error("[LOAD]Cannot decode instruction: 0x", inst.get_value());
             exit(1);
           }
         }
@@ -469,7 +469,7 @@ private:
             break;
           }
           default: {
-            log_error("Cannout decode instruction: 0x", inst.get_value());
+            log_error("[STORE] Cannot decode instruction: 0x", inst.get_value());
             exit(1);
           }
         }
@@ -544,7 +544,7 @@ private:
                 break;
               }
               default: {
-                log_error("Cannout decode instruction: 0x", inst.get_value());
+                log_error("[SRAI] Cannot decode instruction: 0x", inst.get_value());
                 exit(1);
               }
             }
@@ -610,7 +610,7 @@ private:
                 break;
               }
               default: {
-                log_error("Cannout decode instruction: 0x", inst.get_value());
+                log_error("[COMP_R1] Cannot decode instruction: 0x", inst.get_value());
                 exit(1);
               }
             }
@@ -629,14 +629,14 @@ private:
                 break;
               }
               default: {
-                log_error("Cannout decode instruction: 0x", inst.get_value());
+                log_error("[COMP_R2] Cannot decode instruction: 0x", inst.get_value());
                 exit(1);
               }
             }
             break;
           }
           default: {
-            log_error("Cannout decode instruction: 0x", inst.get_value());
+            log_error("[COMP_R] Cannot decode instruction: 0x", inst.get_value());
             exit(1);
           }
         }
@@ -652,7 +652,7 @@ private:
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         if (rs1 != 0x0) {
-          log_error("Cannout decode instruction: 0x", inst.get_value());
+          log_error("[FENCE1] Cannot decode instruction: 0x", inst.get_value());
           exit(1);
         }
         switch(funct3) {
@@ -668,14 +668,14 @@ private:
             uint32_t imm = inst.get_imm11_0();
             log_debug_hex("imm", imm);
             if (imm != 0x0) {
-              log_error("Cannout decode instruction", inst.get_value());
+              log_error("[FENCE2] Cannot decode instruction", inst.get_value());
               exit(1);
             }
             throw std::runtime_error("Insctruion not implemented yet.");
             break;
           }
           default: {
-            log_error("Cannout decode instruction", inst.get_value());
+            log_error("[FENCE] Cannot decode instruction", inst.get_value());
             exit(1);
           }
         }
@@ -690,7 +690,7 @@ private:
         log_debug_hex("funct3", funct3);
         log_debug_hex("rs1", rs1);
         if (rs1 != 0x0) {
-          log_error("Cannout decode instruction: 0x", inst.get_value());
+          log_error("[R1] Cannot decode instruction: 0x", inst.get_value());
           exit(1);
         }
         if (rd == 0x0) {
@@ -738,7 +738,7 @@ private:
               break;
             }
             default: {
-              log_error("Cannout decode instruction", inst.get_value());
+              log_error("[R2] Cannot decode instruction", inst.get_value());
               exit(1);
             }
           }
@@ -746,7 +746,7 @@ private:
         break;
       }
       default: {
-        log_error("Cannout decode instruction", inst.get_value());
+        log_error("[R] Cannot decode instruction", inst.get_value());
         exit(1);
       }
     }
@@ -761,7 +761,7 @@ public:
 
   void run() {
     int i = 0;
-    while (i++ < 1) {
+    while (i++ < 100000) {
       Instruction* inst = instruction_fetch();
       execute(*inst);
 #ifdef REGDUMP
