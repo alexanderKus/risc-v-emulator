@@ -1,3 +1,5 @@
 main
 *.pdf
 external-links.md
+.vscode/
+build/
