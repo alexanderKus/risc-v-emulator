@@ -6,6 +6,7 @@
 #include <format>
 #include <fstream>
 #include <cstdint>
+#include <algorithm>
 
 void inline log_error(const std::string err, const uint32_t x) {
   std::cerr << "[ERROR] " << err << " 0x" << std::hex << x << std::endl;
@@ -172,15 +173,16 @@ public:
     if (this->is_valid(addr)) {
       return this->_data[addr];
     }
-    log_error("Invalid address", addr);
+    log_error("[READ] Invalid address", addr);
     exit(1);
   }
 
   void write(uint32_t addr, uint32_t data) {
     if (this->is_valid(addr)) { 
       this->_data[addr] = data;
+      return;
     }
-    log_error("Invalid address", addr);
+    log_error("[WRITE] Invalid address", addr);
     exit(1);
   }
   
@@ -762,22 +764,64 @@ public:
     while (i++ < 1) {
       Instruction* inst = instruction_fetch();
       execute(*inst);
+#ifdef REGDUMP
+    _regs.dump_regs();
+#endif
     }
     _regs.dump_regs();
   }
 };
+
+static uint32_t inline swapEndian(uint32_t value) {
+    return ((value >> 24) & 0xFF) | ((value >> 8) & 0xFF00) |
+           ((value << 8) & 0xFF0000) | ((value << 24) & 0xFF000000);
+}
 
 int main(int argc, char **argv) {
   if (argc < 2) {
     std::cout << "[ERROR] Usage: ./main <filename>" << std::endl;
     exit(1);
   }
-  char buffer[1024 * 1024 * 4];
+  const int ms = 1024 * 1024 * 4;
   std::ifstream file(argv[1], std::ios::binary);
-  file.read(buffer, sizeof(buffer));
+
+  file.seekg(0, std::ios::end);
+  std::streampos file_size = file.tellg();
+  file.seekg(0, std::ios::beg);
+
+  std::size_t elems = file_size / sizeof(uint32_t);
+
+  if (elems > ms ) {
+    std::cout << file_size / sizeof(uint32_t) << " > " << ms << std::endl;
+    exit(1);
+  }
+
+  std::vector<uint32_t> buffer(elems);
+
+  file.read(reinterpret_cast<char*>(buffer.data()), file_size);
   file.close();
 
+  //std::transform(buffer.begin(), buffer.end(), buffer.begin(), swapEndian);
+ 
+  bool is_zero = false;
+  int zeros = 0;
+  for (uint32_t v: buffer) {
+    if (v == 0) {
+      is_zero = true;
+      zeros++;
+      continue;
+    }
+    if (is_zero) {
+      is_zero = true;
+      zeros++;
+      log_debug_hex("value *", 0);
+      continue;
+    }
+    log_debug_hex("value", v);
+  }
+
   auto rv = new RV32I();
+  rv->load_to_ram(buffer);
   rv->run();
   return 0;
 }
