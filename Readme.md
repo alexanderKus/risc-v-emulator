@@ -4,4 +4,5 @@
  - [x] R32I
 
 ### TODO
- - [ ] Write test cases
+ - [ ] Fix add test case
+ - [ ] Write more test cases
