@@ -746,8 +746,10 @@ private:
         break;
       }
       default: {
-        log_error("[R] Cannot decode instruction", inst.get_value());
-        exit(1);
+        if (inst.get_value() != 0) {
+          log_error("Cannot decode instruction", inst.get_value());
+          exit(1);
+        }
       }
     }
   }
@@ -768,7 +770,6 @@ public:
     _regs.dump_regs();
 #endif
     }
-    _regs.dump_regs();
   }
 };
 
@@ -800,9 +801,8 @@ int main(int argc, char **argv) {
 
   file.read(reinterpret_cast<char*>(buffer.data()), file_size);
   file.close();
-
-  //std::transform(buffer.begin(), buffer.end(), buffer.begin(), swapEndian);
  
+  // TODO: optimize this loop. It does run unnesseecrly if debug flag is not set.
   bool is_zero = false;
   int zeros = 0;
   for (uint32_t v: buffer) {
