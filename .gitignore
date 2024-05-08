@@ -3,3 +3,4 @@ main
 external-links.md
 .vscode/
 build/
+*.swp
