@@ -28,6 +28,7 @@ constexpr int32_t sext(int32_t imm, int bits) {
   int sign_pos = bits - 1;
   if (imm & (1 << sign_pos)) {
     int32_t extended_imm = imm | (0xffffffff << bits);
+    return extended_imm;
   }
   return imm;
 }
@@ -40,7 +41,7 @@ enum {
   OPCODE_BRANCH     = 0b01100011,
   OPCODE_LOAD       = 0b00000011,
   OPCODE_STORE      = 0b01000011,
-  OPCODE_INT_COMP_I = 0b00100011,
+  OPCODE_INT_COMP_I = 0b00010011,
   OPCODE_INT_COMP_R = 0b00110011,
   OPCODE_FENCE      = 0b00001111,
   // NOTE: figure out better name than R
@@ -218,11 +219,11 @@ public:
   }
 
   uint32_t get_rs1() const {
-    return this->_value & 0b00000000000011111000000000000000;
+    return (this->_value & 0b00000000000011111000000000000000) >> 15;
   }
 
   uint32_t get_rs2() const {
-    return this->_value & 0b00000001111100000000000000000000;
+    return (this->_value & 0b00000001111100000000000000000000) >> 20;
   }
 
   uint32_t get_funct7() const {
@@ -230,11 +231,11 @@ public:
   }
 
   uint32_t get_imm31_12() const {
-    return this->_value & 0b11111111111111111111000000000000 >> 12;
+    return (this->_value & 0b11111111111111111111000000000000) >> 12;
   }
 
   uint32_t get_imm11_0() const {
-    return this->_value & 0b11111111111100000000000000000000 >> 20;
+    return (this->_value & 0b11111111111100000000000000000000) >> 20;
   }
 
   uint32_t get_imm_store() const {
@@ -272,7 +273,9 @@ private:
 
   void execute(Instruction &inst) {
     uint32_t opcode = inst.get_opcode();
-    log_debug_hex("opcode", opcode);
+    if (opcode != 0x0) {
+      log_debug_hex("opcode", opcode);
+    }
     switch(opcode) {
       case OPCODE_LUI: {
         log_info("opcode lui");
@@ -281,7 +284,7 @@ private:
         log_debug_hex("rd", rd);
         log_debug_hex("imm", imm);
         // TODO: verify if correct.
-        _regs[rd] = sext(imm, 32);
+        _regs[rd] = sext(imm, 20);
         break;
       }
       case OPCODE_AUIPC: {
@@ -291,7 +294,7 @@ private:
         log_debug_hex("rd", rd);
         log_debug_hex("imm", imm);
         // TODO: verify if correct.
-        _regs[rd] = (uint32_t)sext(imm, 32) + _regs.get_pc();
+        _regs[rd] = (uint32_t)sext(imm, 20) + _regs.get_pc();
         break;
       }
       case OPCODE_JAL: {
@@ -767,7 +770,8 @@ public:
       Instruction* inst = instruction_fetch();
       execute(*inst);
 #ifdef REGDUMP
-    _regs.dump_regs();
+      if (inst->get_value() == 0x0) continue;
+      _regs.dump_regs();
 #endif
     }
   }
@@ -825,3 +829,4 @@ int main(int argc, char **argv) {
   rv->run();
   return 0;
 }
+
