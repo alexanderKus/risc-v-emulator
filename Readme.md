@@ -17,7 +17,7 @@ make
 ```
 
 
-Running tests for example add: `./main test/add.bin`
+Running tests for example add: `./main test/add/add.bin`
 
 ### RISC V Toolchain
 
