@@ -9,15 +9,14 @@ For more verbose output use `make info` or `make debug`.
 
 ### Tests
 
-Build test
+Build test exmaple
 
 ```
-cd test
+cd test/add
 make
 ```
 
-
-Running tests for example add: `./main test/add/add.bin`
+Running test: `./main test/add/add.bin`
 
 ### RISC V Toolchain
 
