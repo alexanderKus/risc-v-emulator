@@ -619,7 +619,7 @@ private:
             }
             break;
           }
-          case 0x20000000: {
+          case 0x40000000: {
             switch(funct3) {
               case FUNCT3_SUB: {
                 log_info("SUB");
