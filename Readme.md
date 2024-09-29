@@ -31,8 +31,7 @@ riscv64-unknown-linux-gnu-objcopy -O binary file.bin
 ```
 
 ### Instruction Set
- - [x] R32I
+ - [x] R32I (only implemented addition and mulitiplication)
 
 ### TODO
  - [ ] Implement some ecalls functions
- - [ ] Write more test cases
